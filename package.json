@@ -1,0 +1,37 @@
+{
+  "name": "calm-creates-webpaage",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "oxlint",
+    "preview": "vite preview",
+    "ip": "node -e \"const os=require('os');const n=Object.values(os.networkInterfaces()).flat().find(i=>i.family==='IPv4'&&!i.internal);const p=process.env.PORT||5173;console.log('\\n  Computer:  http://localhost:'+p+'\\n  Phone:     http://'+(n?n.address:'<your-ip>')+':'+p+'\\n  (same Wi-Fi required)')\"",
+    "qr": "node scripts/qr.mjs",
+    "tunnel": "node scripts/tunnel.mjs",
+    "dns-proxy": "node scripts/dns-proxy.mjs",
+    "social-card": "node scripts/social-card.mjs",
+    "deploy": "npx --yes vercel --prod",
+    "deploy:netlify": "npx --yes netlify deploy --prod --dir=dist",
+    "deploy:railway": "npx --yes @railway/cli up --name calm-creates"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "dependencies": {
+    "bootstrap": "^5.3.8",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "oxlint": "^1.88.0",
+    "pngjs": "^7.0.0",
+    "qrcode": "^1.5.4",
+    "vite": "^8.3.4"
+  }
+}

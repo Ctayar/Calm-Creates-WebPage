@@ -1,0 +1,146 @@
+#!/usr/bin/env node
+/**
+ * Generates the social share card used by the Open Graph / Twitter tags.
+ *
+ *   npm run social-card
+ *
+ * Writes public/social-card.svg and public/og-image.png (1200x630).
+ * macOS renders the SVG to PNG with qlmanage, so no image libraries are
+ * needed. Elsewhere the SVG alone is still a usable source asset.
+ */
+import { execFileSync } from 'node:child_process'
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { tmpdir } from 'node:os'
+import { PNG } from 'pngjs'
+
+const OUT_DIR = resolve(process.cwd(), 'public')
+const SVG_PATH = resolve(OUT_DIR, 'social-card.svg')
+const PNG_PATH = resolve(OUT_DIR, 'og-image.png')
+
+const W = 1200
+const H = 630
+
+// qlmanage rasterises the SVG at its intrinsic size, so the width/height
+// attributes are scaled down while the viewBox keeps the 1200x630 design.
+// That renders the artwork 1:1 into the corner of the output bitmap.
+const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="768" height="403.2">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#e3f0fa"/>
+      <stop offset="45%" stop-color="#e7ddf7"/>
+      <stop offset="100%" stop-color="#f7d9e3"/>
+    </linearGradient>
+    <linearGradient id="wing" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#bda4e8"/>
+      <stop offset="60%" stop-color="#8a68c4"/>
+      <stop offset="100%" stop-color="#6a4ba4"/>
+    </linearGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="0.4" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f6f1fb"/>
+    </linearGradient>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="55"/>
+    </filter>
+    <clipPath id="frame">
+      <rect width="${W}" height="${H}"/>
+    </clipPath>
+  </defs>
+
+  <g clip-path="url(#frame)">
+    <rect width="${W}" height="${H}" fill="url(#bg)"/>
+
+    <!-- soft light blobs -->
+    <g filter="url(#soft)" opacity="0.55">
+      <circle cx="170" cy="90" r="170" fill="#ffffff"/>
+      <circle cx="1080" cy="560" r="200" fill="#ffffff" opacity="0.7"/>
+      <circle cx="760" cy="60" r="120" fill="#f3d9ec"/>
+    </g>
+
+    <!-- journal -->
+    <g transform="translate(150 105)">
+      <rect x="18" y="0" width="300" height="420" rx="14" fill="#4a3178" opacity="0.18"/>
+      <rect x="0" y="0" width="300" height="420" rx="14" fill="url(#card)"/>
+      <rect x="0" y="0" width="14" height="420" rx="7" fill="#6a4ba4" opacity="0.5"/>
+
+      <text x="160" y="76" text-anchor="middle" font-family="Snell Roundhand, Brush Script MT, cursive" font-size="42" fill="#6a4ba4" opacity="0.9">Calm Creates</text>
+
+      <text x="160" y="168" text-anchor="middle" font-family="Georgia, Times New Roman, serif" font-size="58" fill="#3a2a5f">Create</text>
+      <text x="160" y="232" text-anchor="middle" font-family="Georgia, Times New Roman, serif" font-size="58" fill="#3a2a5f">Calmness</text>
+
+      <line x1="96" y1="268" x2="224" y2="268" stroke="#b49ad8" stroke-width="2"/>
+
+      <!-- butterfly -->
+      <g transform="translate(160 330) scale(2.1) translate(-32 -32)">
+        <g fill="url(#wing)" opacity="0.92">
+          <path d="M30.5 24.5C24 13 12 11 8.5 21.5 6 28.5 14 34.5 30 31.5Z"/>
+          <path d="M33.5 24.5C40 13 52 11 55.5 21.5 58 28.5 50 34.5 34 31.5Z"/>
+          <path d="M30 32C21 33.5 12.5 37 14.5 45 16 51 26 50.5 30 40.5Z"/>
+          <path d="M34 32C43 33.5 51.5 37 49.5 45 48 51 38 50.5 34 40.5Z"/>
+        </g>
+        <path d="M32 14c1.6 0 2.4 1.6 2.4 4v20c0 4-.8 6.5-2.4 6.5s-2.4-2.5-2.4-6.5V18c0-2.4.8-4 2.4-4Z" fill="#4a3178" opacity="0.9"/>
+        <g stroke="#4a3178" stroke-width="1.5" stroke-linecap="round" opacity="0.75">
+          <path d="M30.5 16C28 11 25 9 22 8"/>
+          <path d="M33.5 16C36 11 39 9 42 8"/>
+        </g>
+      </g>
+
+      <text x="160" y="404" text-anchor="middle" font-family="Georgia, Times New Roman, serif" font-size="19" letter-spacing="5" fill="#8a68c4">30 DAY JOURNAL</text>
+    </g>
+
+    <!-- headline -->
+    <text x="560" y="214" font-family="Snell Roundhand, Brush Script MT, cursive" font-size="96" fill="#553c8c">Create Calmness</text>
+
+    <text x="560" y="284" font-family="Georgia, Times New Roman, serif" font-size="30" letter-spacing="7" fill="#3a2a5f">30 DAY JOURNAL</text>
+
+    <line x1="560" y1="320" x2="1030" y2="320" stroke="#b49ad8" stroke-width="2" opacity="0.8"/>
+
+    <text x="560" y="378" font-family="Georgia, Times New Roman, serif" font-size="29" fill="#6d6188">A guided practice in daily peace,</text>
+    <text x="560" y="420" font-family="Georgia, Times New Roman, serif" font-size="29" fill="#6d6188">for finding calm in a world of chaos.</text>
+
+    <text x="560" y="512" font-family="Snell Roundhand, Brush Script MT, cursive" font-size="40" fill="#8a68c4">Calm Creates</text>
+  </g>
+</svg>
+`
+
+mkdirSync(OUT_DIR, { recursive: true })
+writeFileSync(SVG_PATH, svg)
+console.log(`  Wrote ${SVG_PATH}`)
+
+if (process.platform !== 'darwin') {
+  console.log('  qlmanage is macOS-only; skipping PNG rasterisation.')
+  process.exit(0)
+}
+
+const work = resolve(tmpdir(), `calm-social-card-${process.pid}`)
+mkdirSync(work, { recursive: true })
+
+try {
+  execFileSync('qlmanage', ['-t', '-s', String(W), '-o', work, SVG_PATH], { stdio: 'ignore' })
+  const rendered = resolve(work, 'social-card.svg.png')
+  if (!existsSync(rendered)) throw new Error('qlmanage produced no output')
+
+  // qlmanage pads the render into a square bitmap; crop it back to the
+  // 1200x630 design.
+  const source = PNG.sync.read(readFileSync(rendered))
+  const cropped = new PNG({ width: W, height: H })
+
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const from = (y * source.width + x) * 4
+      const to = (y * W + x) * 4
+      cropped.data[to] = source.data[from]
+      cropped.data[to + 1] = source.data[from + 1]
+      cropped.data[to + 2] = source.data[from + 2]
+      cropped.data[to + 3] = source.data[from + 3]
+    }
+  }
+
+  writeFileSync(PNG_PATH, PNG.sync.write(cropped))
+  console.log(`  Wrote ${PNG_PATH} (${W}x${H})`)
+} catch (err) {
+  console.error(`  PNG generation failed: ${err.message}`)
+} finally {
+  rmSync(work, { recursive: true, force: true })
+}
