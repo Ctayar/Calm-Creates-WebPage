@@ -48,22 +48,16 @@ function qrRoutes() {
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: '/Calm-Creates-WebPage/',
   plugins: [react(), qrRoutes()],
 
-  // Absolute paths work for root-hosted sites (Vercel, Netlify, Cloudflare Pages).
-  // Set BASE_PATH=/my-repo/ for hosts that serve from a subdirectory, such as
-  // a GitHub Pages project site.
-  base: process.env.BASE_PATH || '/',
 
   server: {
     // Expose the dev server on the local network so phones and tablets on the
     // same Wi-Fi can load the site (http://<your-lan-ip>:5173).
     host: true,
 
-    // Vite blocks unknown Host headers by default. Allow the machine's mDNS
-    // name (e.g. http://christyns-macbook-air.local:5173) which survives DHCP
-    // IP changes, plus any other .local host on the network.
-    // Set ALLOWED_HOSTS=true when tunnelling the dev server.
+  
     allowedHosts: process.env.ALLOWED_HOSTS === 'true' ? true : ['.local'],
   },
 
